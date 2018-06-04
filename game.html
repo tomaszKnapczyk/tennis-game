@@ -1,0 +1,136 @@
+<html>
+	<canvas id="gameCanvas" width="800" height="600"></canvas>
+	<script>
+		var canvas;
+		var canvasContext;
+		var ballX;
+		var ballSpeedX=5;
+		var ballY;
+		var ballSpeedY=5;
+		var ballRadius=15;
+		var paddle1Y=250;
+		var paddle2Y=250;
+		const PADDLE_HEIGHT=180;
+		const PADDLE_THICKNESS=10;
+		var p1score=0;
+		var p2score=0;
+		var deltaY;
+		
+	
+		function calculateMousePos(evt){
+			var rect= canvas.getBoundingClientRect();
+			var root= document.documentElement;
+			var mouseX= evt.clientX- rect.left - root.scrollLeft;
+			var mouseY= evt.clientY- rect.top - root.scrollTop;
+			return{
+				x:mouseX,
+				y:mouseY
+			};
+		}
+		
+		//główna funkcja
+		window.onload=function(){
+			canvas = document.getElementById('gameCanvas');
+			canvasContext=canvas.getContext('2d');
+			ballReset();
+			var framesPerSecond=30;
+			canvas.addEventListener('mousemove', 
+								function(evt){
+			//ustawienie paletki w połowie w stosunku do kursora
+			var mousePos = calculateMousePos(evt);
+			paddle1Y= mousePos.y - PADDLE_HEIGHT/2;
+				
+				//warunki aby paletka nie wychodziła poza canvas
+				if(paddle1Y>600-PADDLE_HEIGHT)
+					paddle1Y=600-PADDLE_HEIGHT;
+				if(paddle1Y<0)
+					paddle1Y=0;
+		});
+			//odswiezanie gry
+			setInterval(function(){
+				moveEverything();
+				drawEverything();
+			},	1000/framesPerSecond);
+			
+		}
+		
+		
+		function ballReset(){
+			ballX=(canvas.width)/2;
+			ballY=(canvas.height)/2;
+			ballSpeedX=-ballSpeedX;
+		}
+			
+		
+		function computerMovement(){
+			if(paddle2Y+PADDLE_HEIGHT/2 < ballY-20){
+				paddle2Y += 10;
+			}else if(paddle2Y+PADDLE_HEIGHT/2 > ballY+20) {
+				paddle2Y -= 10;
+			}
+			
+			if(paddle2Y>600-PADDLE_HEIGHT)
+					paddle2Y=600-PADDLE_HEIGHT;
+				if(paddle2Y<0)
+					paddle2Y=0;
+		}
+		
+		function moveEverything(){
+			computerMovement();
+			
+			if(ballX<=ballRadius){
+				if(ballY >= paddle1Y && ballY<=paddle1Y+PADDLE_HEIGHT){
+					ballSpeedX = -ballSpeedX;
+					deltaY = ballY-(paddle1Y+PADDLE_HEIGHT/2);
+					ballSpeedY=deltaY*0.35;
+					
+					
+				}else{
+					ballReset();
+					p2score++;
+					}
+			}
+			
+			if(ballX>=canvas.width-ballRadius){
+				if(ballY >= paddle2Y && ballY<=paddle2Y+PADDLE_HEIGHT){
+					ballSpeedX = -ballSpeedX;
+					deltaY= ballY-(paddle2Y+PADDLE_HEIGHT/2);
+					ballSpeedY=deltaY*0.30;
+					
+				}else{
+					ballReset();
+					p1score++;
+					}
+			}
+			
+			
+			if(ballY>=canvas.height-ballRadius || ballY<=ballRadius){
+				ballSpeedY=-ballSpeedY;
+			}
+			
+			ballX = ballX + ballSpeedX;
+			ballY = ballY + ballSpeedY;
+		}
+		
+		function drawEverything(){
+			//kolorowanie canvas
+			canvasContext.fillStyle="black";
+			canvasContext.fillRect(0,0,canvas.width,canvas.height);
+			//lewa paletka
+			canvasContext.fillStyle="#6CE625";
+			canvasContext.fillRect(0,paddle1Y,PADDLE_THICKNESS,PADDLE_HEIGHT);
+			//prawa paletka- komputer
+			canvasContext.fillStyle="#6CE625";
+			canvasContext.fillRect(canvas.width-10,paddle2Y,PADDLE_THICKNESS,PADDLE_HEIGHT);
+			//piłka
+			canvasContext.fillStyle="white";
+			canvasContext.beginPath();
+			canvasContext.arc(ballX,ballY,ballRadius, 0,Math.PI*2, true);
+			canvasContext.fill();
+			//punktacja
+			canvasContext.font="30px Verdana";
+			canvasContext.fillText(p1score, 100, 100);
+			canvasContext.fillText(p2score, canvas.width-100, 100);
+		}
+	</script>
+</html>
